@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kevserworks · sayfa kayboldu</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/meta/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root { --pink: #efcfdc; --ink: #0a0a0a; --paper: #ffffff; --muted: #6b6b6b; --rose: #e46896; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--pink); color: var(--ink); font-family: "Host Grotesk", "Helvetica Neue", Arial, sans-serif; display: flex; flex-direction: column; min-height: 100svh; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 18px max(16px, 3.2vw); }
+.logo { font-weight: 800; font-size: 20px; letter-spacing: -.04em; color: var(--ink); text-decoration: none; }
+.logo i { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: 0; font-size: 1.12em; }
+.home { font-weight: 500; font-size: 15px; color: var(--paper); background: var(--ink); padding: 11px 18px; border-radius: 999px; text-decoration: none; transition: transform .2s; }
+.home:hover { transform: translateY(-2px); }
+main { flex: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: clamp(20px, 4vw, 64px); align-items: center; padding: 8px max(16px, 3.2vw) 32px; max-width: 1440px; width: 100%; margin: 0 auto; }
+.big { color: var(--ink); max-width: none; font-weight: 800; font-size: clamp(88px, 15vw, 220px); line-height: .82; letter-spacing: -.07em; margin: 0; }
+.big i { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; letter-spacing: -.02em; }
+h1 { font-size: clamp(26px, 3vw, 40px); letter-spacing: -.03em; line-height: 1.05; margin: 22px 0 10px; font-weight: 700; }
+h1 em { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-style: italic; }
+p { margin: 0 0 22px; max-width: 34ch; font-size: 17px; line-height: 1.5; color: #3a2f34; }
+.cta { display: inline-flex; gap: 10px; align-items: center; font-weight: 500; font-size: 17px; color: var(--paper); background: var(--ink); padding: 14px 22px; border-radius: 999px; text-decoration: none; transition: transform .2s; }
+.cta:hover { transform: translateY(-2px); }
+.en { font-size: 13px; color: var(--muted); margin-top: 16px; }
+.game { position: relative; background: var(--paper); border-radius: 22px; overflow: hidden; box-shadow: 0 30px 60px rgba(80, 30, 50, .14); aspect-ratio: 16 / 10; touch-action: manipulation; user-select: none; -webkit-user-select: none; cursor: pointer; }
+.game canvas { display: block; width: 100%; height: 100%; }
+.hud { position: absolute; top: 14px; left: 18px; right: 18px; display: flex; justify-content: space-between; font: 500 13px/1 "JetBrains Mono", monospace; color: var(--muted); pointer-events: none; }
+.msg { position: absolute; inset: 0 0 38% 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; pointer-events: none; padding: 16px; }
+.msg b { font-size: clamp(20px, 2.4vw, 28px); letter-spacing: -.02em; }
+.msg span { font-size: 14px; color: var(--muted); }
+.msg[hidden] { display: none; }
+@media (max-width: 760px) { main { grid-template-columns: 1fr; padding-top: 0; } .game { aspect-ratio: 4 / 3; } }
+@media (prefers-reduced-motion: reduce) { .home, .cta { transition: none; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="/">kevser<i>works</i></a>
+  <a class="home" href="/">ana sayfa ↗</a>
+</header>
+<main>
+  <section>
+    <p class="big">4<i>0</i>4</p>
+    <h1>Bu sayfa <em>kaybolmuş.</em></h1>
+    <p>Kibi de büyük şehirde yolunu kaybetti; ama pes etmiyor. İstersen biraz zıpla, istersen ana sayfaya dön.</p>
+    <a class="cta" href="/">ana sayfaya dön →</a>
+    <div class="en">This page got lost. Play a little, or head back home.</div>
+  </section>
+  <section class="game" id="game" aria-label="Kibi zıplama oyunu: zıplamak için dokun ya da boşluk tuşuna bas" role="application" tabindex="0">
+    <canvas id="c"></canvas>
+    <div class="hud"><span id="score">puan 0</span><span id="best">en iyi 0</span></div>
+    <div class="msg" id="msg"><b>Kibi’yi zıplat!</b><span>dokun ya da boşluk tuşuna bas</span></div>
+  </section>
+</main>
+<script>
+(function () {
+  const box = document.getElementById('game'), cv = document.getElementById('c'), ctx = cv.getContext('2d');
+  const msg = document.getElementById('msg'), sc = document.getElementById('score'), bs = document.getElementById('best');
+  const kibi = new Image(); kibi.src = '/kibi-404.png';
+  let W = 0, H = 0, dpr = 1, ground = 0;
+  function size() {
+    const r = box.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ground = H * .8;
+  }
+  size(); addEventListener('resize', size);
+
+  let best = 0; try { best = +localStorage.getItem('kw-kibi-best') || 0; } catch (e) {}
+  bs.textContent = 'en iyi ' + best;
+  const WORDS = ['OF', 'PUF', 'SABIR', 'YETER', 'OF!'];
+  let state = 'idle', t = 0, score = 0, speed = 0, kY = 0, vy = 0, obs = [], nextGap = 0, squash = 0, clouds = [];
+  for (let i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: .12 + Math.random() * .3, s: .6 + Math.random() * .6 });
+
+  const kH = () => Math.max(56, H * .28), kW = () => kH() * (315 / 360);
+  function reset() { score = 0; speed = W * .55; kY = 0; vy = 0; obs = []; nextGap = W * .7; t = 0; }
+  function jump() {
+    if (state !== 'run') { reset(); state = 'run'; msg.hidden = true; }
+    if (kY === 0) { vy = -H * 2.25; squash = 1; }
+  }
+  box.addEventListener('pointerdown', e => { e.preventDefault(); jump(); });
+  addEventListener('keydown', e => { if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); } });
+
+  function bubble(o) {
+    const fs = Math.max(13, H * .065);
+    ctx.font = `800 ${fs}px "Host Grotesk", Arial, sans-serif`;
+    const tw = ctx.measureText(o.w).width, bw = tw + fs * 1.1, bh = fs * 1.7;
+    o.bw = bw; o.bh = bh;
+    const x = o.x, y = ground - bh - fs * .5;
+    ctx.save(); ctx.lineWidth = Math.max(2, H * .008); ctx.strokeStyle = '#0a0a0a'; ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(x + bw / 2, y + bh / 2, bw / 2, bh / 2, 0, 0, Math.PI * 2);
+    ctx.moveTo(x + bw * .3, y + bh * .9); ctx.lineTo(x + bw * .18, ground); ctx.lineTo(x + bw * .45, y + bh * .96);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0a0a0a'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(o.w, x + bw / 2, y + bh / 2 + 1);
+    ctx.restore();
+  }
+
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(.033, (now - last) / 1000); last = now; t += dt;
+    ctx.clearRect(0, 0, W, H);
+    // gökyüzü bulutları
+    ctx.fillStyle = '#f6e4ec';
+    clouds.forEach(c => { if (state === 'run') c.x -= dt * .02 * c.s; if (c.x < -.2) c.x = 1.1;
+      const cx = c.x * W, cy = c.y * H, r = H * .05 * c.s; ctx.beginPath(); ctx.arc(cx, cy, r, 0, 7); ctx.arc(cx + r, cy - r * .4, r * 1.2, 0, 7); ctx.arc(cx + r * 2.1, cy, r * .9, 0, 7); ctx.fill(); });
+    // zemin
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, ground); ctx.lineTo(W, ground); ctx.stroke();
+    ctx.fillStyle = '#d9c4ce'; const off = (state === 'run' ? (t * speed) % 40 : 0);
+    for (let x = -off; x < W; x += 40) ctx.fillRect(x, ground + 10, 14, 2);
+
+    if (state === 'run') {
+      speed += dt * W * .018; score += dt * 10;
+      vy += H * 7.2 * dt; kY = Math.min(0, kY + vy * dt); if (kY === 0) vy = 0;
+      nextGap -= speed * dt;
+      if (nextGap <= 0) { obs.push({ x: W + 10, w: WORDS[Math.floor(Math.random() * WORDS.length)] }); nextGap = W * (.45 + Math.random() * .55) + speed * .25; }
+      obs.forEach(o => o.x -= speed * dt); obs = obs.filter(o => o.x > -200);
+    }
+    obs.forEach(bubble);
+
+    // Kibi
+    const kh = kH(), kw = kW(), kx = W * .12;
+    squash = Math.max(0, squash - dt * 4);
+    const sy = 1 + (kY < 0 ? .06 : -squash * .12), sx = 1 + (kY < 0 ? -.04 : squash * .1);
+    const bob = state === 'idle' ? Math.sin(t * 3) * H * .01 : 0;
+    ctx.save(); ctx.translate(kx + kw / 2, ground + kY + bob); ctx.scale(sx, sy);
+    if (state === 'over') ctx.rotate(-.12);
+    if (kibi.complete && kibi.naturalWidth) ctx.drawImage(kibi, -kw / 2, -kh, kw, kh);
+    ctx.restore();
+    // gölge
+    ctx.fillStyle = 'rgba(10,10,10,.08)'; const shw = kw * (.7 + kY / H * .6);
+    ctx.beginPath(); ctx.ellipse(kx + kw / 2, ground + 2, Math.max(8, shw / 2), 4, 0, 0, 7); ctx.fill();
+
+    // çarpışma (cömert kutu)
+    if (state === 'run') {
+      const kb = { x: kx + kw * .22, y: ground + kY - kh * .9, w: kw * .5, h: kh * .9 };
+      for (const o of obs) {
+        if (!o.bw) continue;
+        const ob = { x: o.x + o.bw * .12, y: ground - o.bh * .95, w: o.bw * .76, h: o.bh * .95 };
+        if (kb.x < ob.x + ob.w && kb.x + kb.w > ob.x && kb.y < ob.y + ob.h && kb.y + kb.h > ob.y) {
+          state = 'over'; const s = Math.floor(score);
+          if (s > best) { best = s; try { localStorage.setItem('kw-kibi-best', String(best)); } catch (e) {} bs.textContent = 'en iyi ' + best; }
+          msg.innerHTML = '<b>Of! Kibi takıldı.</b><span>' + s + ' puan · tekrar için dokun</span>'; msg.hidden = false; break;
+        }
+      }
+      sc.textContent = 'puan ' + Math.floor(score);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
