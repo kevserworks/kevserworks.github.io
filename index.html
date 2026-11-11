@@ -1589,6 +1589,11 @@ window.addEventListener('hashchange', () => {
   setTimeout(() => { route(); p.className = 'perde acil'; }, 550 + 4 * 50 + 120);
   setTimeout(() => { p.className = 'perde'; gecisVar = false; }, 550 + 4 * 50 + 120 + 850 + 4 * 75 + 50);
 });
+// açılışta her zaman en üstten başla (proje linki değilse)
+try { history.scrollRestoration = 'manual'; } catch (e) {}
+if (location.hash && !cases.some(a => a.dataset.route === location.hash.slice(1))) history.replaceState(null, '', location.pathname + location.search);
+window.scrollTo(0, 0);
+window.addEventListener('pageshow', () => { if (!cases.some(a => a.dataset.route === location.hash.slice(1))) window.scrollTo(0, 0); });
 route();
 
 // GO CHEFS: dokunulabilir prototip
