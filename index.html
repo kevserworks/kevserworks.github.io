@@ -580,9 +580,10 @@ html, body, .band, header.top, .kc { transition: background-color .5s ease, colo
 
 /* GO CHEFS prototip */
 figure.gp { background: #f1ece6; display: grid; grid-template-columns: auto minmax(0, 280px); gap: clamp(24px, 6vw, 110px); align-items: center; justify-content: center; padding: clamp(28px, 4vw, 56px) 16px; aspect-ratio: auto; }
-.gp-phone { height: min(86vh, 900px); width: auto; aspect-ratio: 412 / 866; padding: 11px; background: #111; border-radius: 56px; box-shadow: 0 0 0 2px #3a3a3a inset, 0 30px 60px rgba(20,14,12,.28); position: relative; }
-.gp-screen { width: 100%; height: 100%; border-radius: 46px; overflow: hidden; position: relative; background: #fff; touch-action: pan-y; user-select: none; -webkit-user-select: none; outline: none; }
+.gp-phone { height: min(92vh, 980px); width: auto; aspect-ratio: 716 / 1476; padding: 2.4%; background: #0d0d0f; border-radius: 15% / 7.3%; box-shadow: 0 0 0 2px #4a4a4f, 0 0 0 4px #1c1c1f, 0 30px 60px rgba(20,14,12,.28); position: relative; }
+.gp-screen { width: 100%; height: 100%; border-radius: 12.5% / 5.8%; overflow: hidden; position: relative; background: #fff; touch-action: pan-y; user-select: none; -webkit-user-select: none; outline: none; }
 .gp-screen:focus-visible { box-shadow: 0 0 0 3px #e46896; }
+.gp-screen::before { content: ""; position: absolute; z-index: 2; top: 1.35%; left: 50%; width: 32%; height: 4.4%; transform: translateX(-50%); background: #000; border-radius: 999px; pointer-events: none; }
 .gp-track { display: flex; height: 100%; transition: transform .42s cubic-bezier(.2,.8,.2,1); will-change: transform; }
 .gp-track.drag { transition: none; }
 .gp-track img { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; object-position: top; pointer-events: none; }
@@ -596,7 +597,7 @@ figure.gp { background: #f1ece6; display: grid; grid-template-columns: auto minm
 .gp-btns button:hover { background: #111; color: #fff; }
 .gp-btns button:disabled { opacity: .3; pointer-events: none; }
 .gp-hint { font-size: 13px; color: #8a817a; }
-@media (max-width: 640px) { figure.gp { grid-template-columns: 1fr; justify-items: center; text-align: center; } .gp-btns { justify-content: center; } .gp-phone { height: auto; width: min(340px, 82vw); } }
+@media (max-width: 640px) { figure.gp { grid-template-columns: 1fr; justify-items: center; text-align: center; } .gp-btns { justify-content: center; } .gp-phone { height: auto; width: min(360px, 86vw); } }
 .kc-own { font-style: normal; font-size: .55em; font-weight: 500; letter-spacing: .02em; text-transform: lowercase; color: #e46896; margin-left: .6em; vertical-align: middle; white-space: nowrap; }
 
 /* beyaz zeminli görseller: ortak açık zemin, eşit iç boşluk */
