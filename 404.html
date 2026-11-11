@@ -60,10 +60,55 @@ p { margin: 0 0 22px; max-width: 34ch; font-size: 17px; line-height: 1.5; color:
 </main>
 <script>
 (function () {
+// Kibi yan profil (sağa bakar). h = boy, ph = adım fazı, st = adım şiddeti (0-1), air = havada mı
+function drawKibiSide(ctx, h, ph, st, air) {
+  const s = Math.sin(ph), lw = Math.max(1.6, h * .02);
+  const ink = '#1a1a1a', body = '#ffffff', shade = '#ebe8ec';
+  const legSwing = air ? 0 : s * .6 * st, armSwing = air ? -1.1 : -s * .55 * st;
+  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  function leg(ang, back) {
+    ctx.save(); ctx.translate(back ? -h * .06 : h * .05, -h * .24); ctx.rotate(air ? (back ? .55 : -.4) : ang);
+    ctx.beginPath(); ctx.roundRect(-h * .06, 0, h * .12, h * .2, h * .055);
+    ctx.moveTo(h * .1, h * .215); ctx.ellipse(h * .025, h * .215, h * .08, h * .035, 0, 0, 7);
+    ctx.fillStyle = back ? shade : body; ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.stroke(); ctx.fill();
+    ctx.restore();
+  }
+  function arm(ang, back) {
+    ctx.save(); ctx.translate(back ? -h * .03 : h * .0, -h * .58); ctx.rotate(ang);
+    ctx.beginPath(); ctx.roundRect(-h * .045, 0, h * .09, h * .24, h * .045);
+    ctx.fillStyle = back ? shade : body; ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.stroke(); ctx.fill();
+    ctx.restore();
+  }
+  function silhouette() {
+    ctx.beginPath(); ctx.moveTo(0, -h);
+    ctx.bezierCurveTo(h * .17, -h, h * .25, -h * .88, h * .25, -h * .72);
+    ctx.bezierCurveTo(h * .25, -h * .56, h * .3, -h * .44, h * .29, -h * .34);
+    ctx.bezierCurveTo(h * .28, -h * .24, h * .15, -h * .21, 0, -h * .21);
+    ctx.bezierCurveTo(-h * .16, -h * .21, -h * .28, -h * .24, -h * .28, -h * .36);
+    ctx.bezierCurveTo(-h * .28, -h * .52, -h * .22, -h * .62, -h * .21, -h * .74);
+    ctx.bezierCurveTo(-h * .2, -h * .9, -h * .14, -h, 0, -h); ctx.closePath();
+  }
+  leg(-legSwing, true); arm(-armSwing, true);
+  silhouette(); ctx.fillStyle = body; ctx.fill(); ctx.strokeStyle = ink; ctx.lineWidth = lw; ctx.stroke();
+  // sırt gölgesi
+  ctx.save(); silhouette(); ctx.clip(); ctx.fillStyle = 'rgba(205,200,212,.32)';
+  ctx.beginPath(); ctx.ellipse(-h * .28, -h * .45, h * .1, h * .3, .05, 0, 7); ctx.fill(); ctx.restore();
+  leg(legSwing, false);
+  // yüz
+  ctx.fillStyle = ink; ctx.beginPath(); ctx.ellipse(h * .14, -h * .77, h * .04, h * .05, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(h * .152, -h * .787, h * .014, 0, 7); ctx.fill();
+  ctx.strokeStyle = ink; ctx.lineWidth = lw * .9;
+  ctx.beginPath(); ctx.arc(h * .13, -h * .8, h * .06, -2.2, -1.15); ctx.stroke();
+  ctx.beginPath(); ctx.arc(h * .175, -h * .69, h * .042, .3, 1.45); ctx.stroke();
+  ctx.fillStyle = 'rgba(240,150,165,.8)'; ctx.beginPath(); ctx.ellipse(h * .1, -h * .695, h * .042, h * .024, 0, 0, 7); ctx.fill();
+  ctx.save(); ctx.translate(h * .248, -h * .735); ctx.scale(h * .0019, h * .0019); ctx.fillStyle = '#d42a3a';
+  ctx.beginPath(); ctx.moveTo(0, 12); ctx.bezierCurveTo(-20, 0, -14, -18, 0, -8); ctx.bezierCurveTo(14, -18, 20, 0, 0, 12); ctx.fill(); ctx.restore();
+  arm(armSwing, false);
+}
+
   const box = document.getElementById('game'), cv = document.getElementById('c'), ctx = cv.getContext('2d');
   const msg = document.getElementById('msg'), sc = document.getElementById('score'), bs = document.getElementById('best');
-  const kibi = new Image(); kibi.src = '/kibi-404.png';
-  let W = 0, H = 0, dpr = 1, ground = 0;
+    let W = 0, H = 0, dpr = 1, ground = 0;
   function size() {
     const r = box.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = r.width; H = r.height; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ground = H * .8;
@@ -77,7 +122,7 @@ p { margin: 0 0 22px; max-width: 34ch; font-size: 17px; line-height: 1.5; color:
   let state = 'idle', t = 0, score = 0, speed = 0, kY = 0, vy = 0, obs = [], nextGap = 0, squash = 0, clouds = [];
   for (let i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: .12 + Math.random() * .3, s: .6 + Math.random() * .6 });
 
-  const kH = () => Math.max(56, H * .28), kW = () => kH() * (315 / 360);
+  const kH = () => Math.max(60, H * .3), kW = () => kH() * .58;
   function reset() { score = 0; speed = W * .55; kY = 0; vy = 0; obs = []; nextGap = W * .7; t = 0; }
   function jump() {
     if (state !== 'run') { reset(); state = 'run'; msg.hidden = true; }
@@ -126,9 +171,9 @@ p { margin: 0 0 22px; max-width: 34ch; font-size: 17px; line-height: 1.5; color:
     const kh = kH(), kw = kW(), kx = W * .12;
     squash = Math.max(0, squash - dt * 4);
     const onGround = kY === 0;
-    if (state === 'run' && onGround) { const prev = Math.sin(phase); phase += dt * (9 + speed / W * 4); if ((prev < 0) !== (Math.sin(phase) < 0)) dust.push({ x: kx + kw * .3, y: ground, r: H * .012, a: .5 }); }
+    if (state === 'run' && onGround) { const prev = Math.sin(phase); phase += dt * (9 + speed / W * 4); if ((prev < 0) !== (Math.sin(phase) < 0)) dust.push({ x: kx + kw * .2, y: ground, r: H * .012, a: .5 }); }
     else if (state === 'idle') phase += dt * 3;
-    const s1 = Math.sin(phase), step = state === 'run' && onGround ? 1 : (state === 'idle' ? .25 : 0);
+    const s1 = Math.sin(phase), step = state === 'run' && onGround ? 1 : 0;
     const bounce = -Math.abs(s1) * H * .022 * step;
     const sway = s1 * .07 * step + (state === 'over' ? -.14 : 0) + (kY < 0 ? -.06 : 0);
     const sy = 1 + (kY < 0 ? .06 : -squash * .12) - Math.abs(Math.cos(phase)) * .03 * step;
@@ -138,19 +183,9 @@ p { margin: 0 0 22px; max-width: 34ch; font-size: 17px; line-height: 1.5; color:
     dust.forEach(d => { d.x -= (state === 'run' ? speed : 0) * dt * .6 + dt * 20; d.r += dt * H * .05; d.a -= dt * 1.4; });
     dust = dust.filter(d => d.a > 0);
     dust.forEach(d => { ctx.fillStyle = `rgba(217, 196, 206, ${d.a})`; ctx.beginPath(); ctx.arc(d.x, d.y - d.r * .6, d.r, 0, 7); ctx.fill(); });
-    if (kibi.complete && kibi.naturalWidth) {
-      const iw = kibi.naturalWidth, ih = kibi.naturalHeight, hip = .7;
-      ctx.save(); ctx.translate(kx + kw / 2, ground + kY + bob + bounce); ctx.rotate(sway * .5); ctx.scale(sx, sy);
-      // bacaklar: kalça çizgisinden aşağısı, adıma göre eğilir
-      ctx.save(); ctx.translate(0, -kh * (1 - hip)); ctx.transform(1, 0, (kY < 0 ? -.25 : -s1 * .32 * step), 1, 0, 0);
-      ctx.drawImage(kibi, 0, ih * (hip - .02), iw, ih * (1 - hip + .02), -kw / 2, -kh * .02, kw, kh * (1 - hip + .02));
-      ctx.restore();
-      // gövde: kalçanın üstü, hafifçe öne arkaya yatar
-      ctx.save(); ctx.translate(0, -kh * (1 - hip)); ctx.rotate(sway * .6);
-      ctx.drawImage(kibi, 0, 0, iw, ih * hip, -kw / 2, -kh * hip, kw, kh * hip);
-      ctx.restore();
-      ctx.restore();
-    }
+    ctx.save(); ctx.translate(kx + kw / 2, ground + kY + bob + bounce); ctx.rotate(sway * .5); ctx.scale(sx, sy);
+    drawKibiSide(ctx, kh, phase, step, kY < 0);
+    ctx.restore();
     // gölge
     ctx.fillStyle = 'rgba(10,10,10,.08)'; const shw = kw * (.7 + kY / H * .6);
     ctx.beginPath(); ctx.ellipse(kx + kw / 2, ground + 2, Math.max(8, shw / 2), 4, 0, 0, 7); ctx.fill();
