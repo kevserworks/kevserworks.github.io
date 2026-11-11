@@ -73,6 +73,7 @@ p { margin: 0 0 22px; max-width: 34ch; font-size: 17px; line-height: 1.5; color:
   let best = 0; try { best = +localStorage.getItem('kw-kibi-best') || 0; } catch (e) {}
   bs.textContent = 'en iyi ' + best;
   const WORDS = ['OF', 'PUF', 'SABIR', 'YETER', 'OF!'];
+  let phase = 0, dust = [];
   let state = 'idle', t = 0, score = 0, speed = 0, kY = 0, vy = 0, obs = [], nextGap = 0, squash = 0, clouds = [];
   for (let i = 0; i < 4; i++) clouds.push({ x: Math.random(), y: .12 + Math.random() * .3, s: .6 + Math.random() * .6 });
 
@@ -121,15 +122,35 @@ p { margin: 0 0 22px; max-width: 34ch; font-size: 17px; line-height: 1.5; color:
     }
     obs.forEach(bubble);
 
-    // Kibi
+    // Kibi: adım ritminde yürüyüş (gövde sallanır ve yaylanır, bacaklar ileri geri eğilir)
     const kh = kH(), kw = kW(), kx = W * .12;
     squash = Math.max(0, squash - dt * 4);
-    const sy = 1 + (kY < 0 ? .06 : -squash * .12), sx = 1 + (kY < 0 ? -.04 : squash * .1);
-    const bob = state === 'idle' ? Math.sin(t * 3) * H * .01 : 0;
-    ctx.save(); ctx.translate(kx + kw / 2, ground + kY + bob); ctx.scale(sx, sy);
-    if (state === 'over') ctx.rotate(-.12);
-    if (kibi.complete && kibi.naturalWidth) ctx.drawImage(kibi, -kw / 2, -kh, kw, kh);
-    ctx.restore();
+    const onGround = kY === 0;
+    if (state === 'run' && onGround) { const prev = Math.sin(phase); phase += dt * (9 + speed / W * 4); if ((prev < 0) !== (Math.sin(phase) < 0)) dust.push({ x: kx + kw * .3, y: ground, r: H * .012, a: .5 }); }
+    else if (state === 'idle') phase += dt * 3;
+    const s1 = Math.sin(phase), step = state === 'run' && onGround ? 1 : (state === 'idle' ? .25 : 0);
+    const bounce = -Math.abs(s1) * H * .022 * step;
+    const sway = s1 * .07 * step + (state === 'over' ? -.14 : 0) + (kY < 0 ? -.06 : 0);
+    const sy = 1 + (kY < 0 ? .06 : -squash * .12) - Math.abs(Math.cos(phase)) * .03 * step;
+    const sx = 1 + (kY < 0 ? -.04 : squash * .1) + Math.abs(Math.cos(phase)) * .02 * step;
+    const bob = state === 'idle' ? Math.sin(t * 3) * H * .006 : 0;
+    // toz bulutları
+    dust.forEach(d => { d.x -= (state === 'run' ? speed : 0) * dt * .6 + dt * 20; d.r += dt * H * .05; d.a -= dt * 1.4; });
+    dust = dust.filter(d => d.a > 0);
+    dust.forEach(d => { ctx.fillStyle = `rgba(217, 196, 206, ${d.a})`; ctx.beginPath(); ctx.arc(d.x, d.y - d.r * .6, d.r, 0, 7); ctx.fill(); });
+    if (kibi.complete && kibi.naturalWidth) {
+      const iw = kibi.naturalWidth, ih = kibi.naturalHeight, hip = .7;
+      ctx.save(); ctx.translate(kx + kw / 2, ground + kY + bob + bounce); ctx.rotate(sway * .5); ctx.scale(sx, sy);
+      // bacaklar: kalça çizgisinden aşağısı, adıma göre eğilir
+      ctx.save(); ctx.translate(0, -kh * (1 - hip)); ctx.transform(1, 0, (kY < 0 ? -.25 : -s1 * .32 * step), 1, 0, 0);
+      ctx.drawImage(kibi, 0, ih * (hip - .02), iw, ih * (1 - hip + .02), -kw / 2, -kh * .02, kw, kh * (1 - hip + .02));
+      ctx.restore();
+      // gövde: kalçanın üstü, hafifçe öne arkaya yatar
+      ctx.save(); ctx.translate(0, -kh * (1 - hip)); ctx.rotate(sway * .6);
+      ctx.drawImage(kibi, 0, 0, iw, ih * hip, -kw / 2, -kh * hip, kw, kh * hip);
+      ctx.restore();
+      ctx.restore();
+    }
     // gölge
     ctx.fillStyle = 'rgba(10,10,10,.08)'; const shw = kw * (.7 + kY / H * .6);
     ctx.beginPath(); ctx.ellipse(kx + kw / 2, ground + 2, Math.max(8, shw / 2), 4, 0, 0, 7); ctx.fill();
