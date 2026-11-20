@@ -621,6 +621,9 @@ figure.gp { background: #f1ece6; display: grid; grid-template-columns: auto minm
   .kc-row.kc-pair { flex-direction: row; gap: 8px; justify-content: center; }
   .kc-row.kc-pair > img { flex: var(--ar) 1 0; }
 }
+.hero-meta a.hm-link { color: inherit; text-decoration: none; display: flex; flex-direction: column; }
+.hero-meta a.hm-link b { display: block; color: var(--paper); font-weight: 500; font-family: var(--body); font-size: 15px; }
+.hero-meta a.hm-link:hover b { text-decoration: underline; text-underline-offset: 3px; }
 </style>
 </head>
 <body>
@@ -656,7 +659,7 @@ figure.gp { background: #f1ece6; display: grid; grid-template-columns: auto minm
       <div class="hero-meta">
         <span>konum<b>istanbul</b></span>
         <span>durum<b>işe açık</b></span>
-        <span>mezuniyet<b>2026</b></span>
+        <a href="#isler" class="hm-link"><span data-tr="çalışmalar" data-en="work">çalışmalar</span><b>11 proje</b></a>
       </div>
     </div>
   </div>
@@ -1487,6 +1490,7 @@ function setLang(l) {
     n.nodeValue = lead + t + trail; });
   attrNodes.forEach(([el, a, v]) => el.setAttribute(a, l === 'en' ? EN['@' + v] : v));
   document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', b.dataset.l === l ? 'true' : 'false'));
+  document.querySelectorAll('[data-en]').forEach(el => { el.textContent = l === 'en' ? el.dataset.en : el.dataset.tr; });
   try { localStorage.setItem('kw-lang', l); } catch (e) {}
 }
 document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.l)));
